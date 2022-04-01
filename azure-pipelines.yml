@@ -94,3 +94,25 @@ stages:
               azureSubscription: 'as_mfc_dev (56fe192b-76c3-4583-9c07-f44ec58da5f2)'
               appName: '$(WebAppNameDev)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
+- stage: 'Staging'
+  displayName: 'Deploy to the staging environment'
+  dependsOn: Test
+  jobs:
+  - deployment: Deploy
+    pool:
+      vmImage: 'ubuntu-20.04'
+    environment: staging
+    variables:
+    - group: 'Release'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop
+          - task: AzureWebApp@1
+            displayName: 'Azure App Service Deploy: website'
+            inputs:
+              azureSubscription: 'as_mfc_dev (56fe192b-76c3-4583-9c07-f44ec58da5f2)'
+              appName: '$(WebAppNameStaging)'
+              package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
